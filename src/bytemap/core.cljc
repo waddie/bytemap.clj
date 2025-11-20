@@ -16,13 +16,10 @@
 
     ;; Plot a function
     (bm/plot #(Math/sin %) [40 10] Math/PI 1)"
-  (:require [bytemap.util :as util]
-            [malli.core :as m]))
+  (:require [bytemap.util :as util]))
 
 ;; Malli Schemas
-(def Point
-  "Schema for a 2D point [x y]"
-  [:tuple :int :int])
+(def Point "Schema for a 2D point [x y]" [:tuple :int :int])
 
 (def Subpixel
   "Schema for a subpixel coordinate [x y] where x is 0-1, y is 0-3"
@@ -30,10 +27,7 @@
 
 (def Canvas
   "Schema for a canvas data structure"
-  [:map
-   [:width :int]
-   [:height :int]
-   [:pixels [:vector util/ByteValue]]])
+  [:map [:width :int] [:height :int] [:pixels [:vector util/ByteValue]]])
 
 ;; Constants
 (def ^:private braille-offset 0x2800)
@@ -71,9 +65,7 @@
     (bit-of-subpixel [1 3]) => 7"
   {:malli/schema [:=> [:cat Subpixel] util/Bit]}
   [[x y]]
-  (if (= y 3)
-    (+ 6 x)
-    (+ (* 3 x) y)))
+  (if (= y 3) (+ 6 x) (+ (* 3 x) y)))
 
 (defn set-subpixel
   "Sets or clears a specific subpixel in a byte value.
@@ -98,9 +90,7 @@
     => {:width 10, :height 5, :pixels [0 0 0 ...]}"
   {:malli/schema [:=> [:cat :int :int] Canvas]}
   [width height]
-  {:width width
-   :height height
-   :pixels (vec (repeat (* width height) 0))})
+  {:width width :height height :pixels (vec (repeat (* width height) 0))})
 
 (defn bounds
   "Returns the canvas dimensions in subpixels [width height].
@@ -128,26 +118,24 @@
     (-> (new-canvas 10 5)
         (draw-point [10 10])
         (draw-point [5 5] false))  ; clear a point"
-  {:malli/schema [:function
-                  [:=> [:cat Canvas Point] Canvas]
+  {:malli/schema [:function [:=> [:cat Canvas Point] Canvas]
                   [:=> [:cat Canvas Point :any] Canvas]]}
-  ([canvas point]
-   (draw-point canvas point true))
+  ([canvas point] (draw-point canvas point true))
   ([canvas [x y] value]
-   (let [{:keys [width height pixels]} canvas
+   (let [{:keys [width height _]} canvas
          x (Math/round (double x))
          y (Math/round (double y))
          pixel-x (util/idiv x 2)
          pixel-y (util/idiv y 4)]
-     (if (or (< pixel-x 0) (< pixel-y 0)
-             (>= pixel-x width) (>= pixel-y height))
-       canvas  ; out of bounds, return unchanged
+     (if (or (< pixel-x 0) (< pixel-y 0) (>= pixel-x width) (>= pixel-y height))
+       canvas ; out of bounds, return unchanged
        (let [pixel-ix (+ (* pixel-y width) pixel-x)
              subpixel [(mod x 2) (mod y 4)]]
-         (update canvas :pixels
-                 (fn [pixels]
-                   (update pixels pixel-ix
-                           #(set-subpixel % subpixel value)))))))))
+         (update
+          canvas
+          :pixels
+          (fn [pixels]
+            (update pixels pixel-ix #(set-subpixel % subpixel value)))))))))
 
 (defn canvas->string
   "Converts a canvas to a string representation using braille characters.
@@ -186,11 +174,6 @@
 
 ;; Vector operations
 
-(defn- vec2-add
-  "Adds two 2D vectors."
-  [[x0 y0] [x1 y1]]
-  [(+ x0 x1) (+ y0 y1)])
-
 (defn- span
   "Calculates the span between two points along an axis (0=x, 1=y)."
   [axis p0 p1]
@@ -199,10 +182,9 @@
 (defn- sign
   "Returns the sign of a number: -1, 0, or 1."
   [x]
-  (cond
-    (< x 0) -1
-    (> x 0) 1
-    :else 0))
+  (cond (< x 0) -1
+        (> x 0) 1
+        :else 0))
 
 (defn- make-vec2
   "Constructs a 2D vector from major/minor axis values.
@@ -230,8 +212,8 @@
         y-span (span y-axis start end)
         ;; Determine major and minor axes
         [major-axis minor-axis] (if (< (Math/abs y-span) (Math/abs x-span))
-                                   [x-axis y-axis]
-                                   [y-axis x-axis])
+                                  [x-axis y-axis]
+                                  [y-axis x-axis])
         ;; Ensure we draw from lower to higher major coordinate
         [start end] (if (< (nth start major-axis) (nth end major-axis))
                       [start end]
@@ -248,13 +230,9 @@
         canvas
         (let [canvas (draw-point canvas (make-vec2 major-axis major minor))
               [minor err] (if (> err 0)
-                           [(+ minor minor-step)
-                            (- err (* 2 run))]
-                           [minor err])]
-          (recur canvas
-                 (inc major)
-                 minor
-                 (+ err (* 2 rise))))))))
+                            [(+ minor minor-step) (- err (* 2 run))]
+                            [minor err])]
+          (recur canvas (inc major) minor (+ err (* 2 rise))))))))
 
 (defn plot
   "Plots a mathematical function on a new canvas.
@@ -274,24 +252,19 @@
   Example:
     (plot #(Math/sin %) [40 10] Math/PI 1)
     (plot #(Math/cos %) [20 10] Math/PI 1 :axis false)"
-  {:malli/schema [:function
-                  [:=> [:cat fn? [:tuple :int :int] number? number?] :nil]
-                  [:=> [:cat fn? [:tuple :int :int] number? number?
-                        [:* :any]] :nil]]}
+  {:malli/schema
+   [:function [:=> [:cat fn? [:tuple :int :int] number? number?] :nil]
+    [:=> [:cat fn? [:tuple :int :int] number? number? [:* :any]] :nil]]}
   [f [w h] x-scale y-scale & {:keys [axis] :or {axis true}}]
   (let [canvas (new-canvas w h)
         [w h] (bounds canvas)
-        canvas (if axis
-                 ;; Draw axes
-                 (let [canvas (reduce (fn [c i]
-                                       (draw-point c [(/ w 2) i]))
-                                     canvas
-                                     (range h))]
-                   (reduce (fn [c i]
-                            (draw-point c [i (/ h 2)]))
-                          canvas
-                          (range w)))
-                 canvas)
+        canvas
+        (if axis
+          ;; Draw axes
+          (let [canvas
+                (reduce (fn [c i] (draw-point c [(/ w 2) i])) canvas (range h))]
+            (reduce (fn [c i] (draw-point c [i (/ h 2)])) canvas (range w)))
+          canvas)
         ;; Narrow y range slightly to avoid clipping extremes
         y-scale (* y-scale (/ (inc h) h))]
     ;; Sample function and draw lines between consecutive points
@@ -303,9 +276,6 @@
         (let [;; x spans -0.5 to 0.5 (inclusive)
               x (- (/ i (dec w)) 0.5)
               y (/ (f (* x 2 x-scale)) y-scale -2)
-              p [(* (+ x 0.5) (dec w))
-                 (* (+ y 0.5) h)]
-              canvas (if prev-point
-                      (draw-line canvas prev-point p)
-                      canvas)]
+              p [(* (+ x 0.5) (dec w)) (* (+ y 0.5) h)]
+              canvas (if prev-point (draw-line canvas prev-point p) canvas)]
           (recur (inc i) p canvas))))))
