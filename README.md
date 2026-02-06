@@ -137,16 +137,8 @@ Add to your `deps.edn`:
 - `(bit-of-sub-pixel [x y])` - Maps sub-pixel coordinates to bit position.
 - `(set-sub-pixel num [x y] value)` - Sets or clears a specific sub-pixel bit.
 
-## Differences from Janet implementation
-
-1. **Immutability** - Clojure version returns new canvases; Janet version mutates in place
-2. **Function plotting** - Minor floating-point rounding differences in output
-3. **Schemas** - Clojure version includes Malli schemas for validation
-4. **Unicode handling** - Clojure handles Unicode natively; no manual UTF-8 encoding needed
-5. **Chunks output for nREPL compatibility** - Braille characters are 3-bytes. nREPL has a 1024-byte output buffer, which will split them and break the output
-
 ## License
 
-Copyright © 2025 Tom Waddington
+Copyright © 2025-2026 Tom Waddington
 
 Distributed under the MIT License. See LICENSE file for details.

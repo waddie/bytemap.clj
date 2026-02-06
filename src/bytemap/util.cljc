@@ -3,11 +3,13 @@
 
 ;; Malli Schemas
 (def Int "Schema for integer values" int?)
+
 (def Bit
   "Schema for bit positions (0-7)"
   [:int
    {:max 7
     :min 0}])
+
 (def ByteValue
   "Schema for byte values (0-255)"
   [:int
