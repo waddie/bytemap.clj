@@ -53,7 +53,7 @@
   Example:
     (braille 0)   => \"⠀\"  ; blank
     (braille 255) => \"⣿\"  ; all dots filled"
-  {:malli/schema [:=> [:cat util/ByteValue] :string]}
+  {:malli/schema [:function [:=> [:cat util/ByteValue] :string]]}
   [byte-val]
   (str (char (+ braille-offset byte-val))))
 
@@ -73,7 +73,7 @@
   Example:
     (bit-of-subpixel [0 0]) => 0
     (bit-of-subpixel [1 3]) => 7"
-  {:malli/schema [:=> [:cat Subpixel] util/Bit]}
+  {:malli/schema [:function [:=> [:cat Subpixel] util/Bit]]}
   [[x y]]
   (if (= y 3) (+ 6 x) (+ (* 3 x) y)))
 
@@ -85,7 +85,8 @@
   Example:
     (set-subpixel 0 [0 0] true)  => 1
     (set-subpixel 255 [0 0] false) => 254"
-  {:malli/schema [:=> [:cat util/ByteValue Subpixel :any] util/ByteValue]}
+  {:malli/schema [:function
+                  [:=> [:cat util/ByteValue Subpixel :any] util/ByteValue]]}
   [num subpixel value]
   (util/set-bit num (bit-of-subpixel subpixel) value))
 
@@ -98,7 +99,7 @@
   Example:
     (new-canvas 10 5)
     => {:width 10, :height 5, :pixels [0 0 0 ...]}"
-  {:malli/schema [:=> [:cat :int :int] Canvas]}
+  {:malli/schema [:function [:=> [:cat :int :int] Canvas]]}
   [width height]
   {:height height
    :pixels (vec (repeat (* width height) 0))
@@ -113,7 +114,7 @@
 
   Example:
     (bounds (new-canvas 10 5)) => [20 20]"
-  {:malli/schema [:=> [:cat Canvas] [:tuple :int :int]]}
+  {:malli/schema [:function [:=> [:cat Canvas] [:tuple :int :int]]]}
   [{:keys [width height]}]
   [(* 2 width) (* 4 height)])
 
@@ -159,7 +160,7 @@
         (draw-point [5 6])
         (canvas->string))
     => \"⠀⠀⡀⠀⠀\\n⠀⠀⠀⠀⠀\\n⠀⠀⠀⠀⠀\""
-  {:malli/schema [:=> [:cat Canvas] :string]}
+  {:malli/schema [:function [:=> [:cat Canvas] :string]]}
   [{:keys [width height pixels]}]
   (apply str
          (for [y (range height)]
@@ -181,7 +182,7 @@
     (-> (new-canvas 10 5)
         (draw-line [0 0] [20 20])
         (print-canvas!))"
-  {:malli/schema [:=> [:cat Canvas] :nil]}
+  {:malli/schema [:function [:=> [:cat Canvas] :nil]]}
   [canvas]
   (let [s     (canvas->string canvas)
         lines (s/split s #"\n")]
@@ -221,7 +222,7 @@
     (-> (new-canvas 10 5)
         (draw-line [0 0] [20 20])
         (draw-line [0 20] [20 0]))"
-  {:malli/schema [:=> [:cat Canvas Point Point] Canvas]}
+  {:malli/schema [:function [:=> [:cat Canvas Point Point] Canvas]]}
   [canvas start end]
   (let [x-axis      0
         y-axis      1

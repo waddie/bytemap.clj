@@ -25,7 +25,7 @@
   Example:
     (set-bit 0 3 true)  => 8
     (set-bit 15 0 false) => 14"
-  {:malli/schema [:=> [:cat Int Bit :any] Int]}
+  {:malli/schema [:function [:=> [:cat Int Bit :any] Int]]}
   [num i value]
   (if value
     (bit-or num (bit-shift-left 1 i))
@@ -39,7 +39,7 @@
   Example:
     (idiv 7 2)  => 3
     (idiv -7 2) => -4"
-  {:malli/schema [:=> [:cat Int Int] Int]}
+  {:malli/schema [:function [:=> [:cat Int Int] Int]]}
   [a b]
   #?(:clj (long (Math/floor (/ a b)))
      :cljs (js/Math.floor (/ a b))))
