@@ -252,6 +252,58 @@
                             [minor err])]
           (recur canvas (inc major) minor (+ err (* 2 rise))))))))
 
+(defn plot
+  "Plots a mathematical function on a canvas.
+
+  Arguments:
+  - canvas: A canvas
+  - f: Function to plot (takes a number, returns a number)
+
+  Options:
+  - :axis - Whether to draw x and y axes (default: true)
+  - :x-scale: The range of x values (from -x-scale to +x-scale) (default: 1)
+  - :y-scale: The range of y values (from -y-scale to +y-scale) (default: 1)
+
+  The function is sampled at regular intervals across the canvas width,
+  and consecutive points are connected with lines.
+
+  Returns the canvas.
+
+  Example:
+    (plot (new-canvas 10 10) #(Math/sin %) Math/PI 1)
+    (plot (new-canvas 10 10) #(Math/cos %) Math/PI 1 :axis false)"
+  {:malli/schema [:function [:=> [:cat Canvas fn?] Canvas]
+                  [:=> [:cat Canvas fn? [:* :any]] Canvas]]}
+  [canvas f &
+   {:keys [axis x-scale y-scale]
+    :or   {axis    true
+           x-scale 1
+           y-scale 1}}]
+  (let [[w h]   (bounds canvas)
+        canvas  (if axis
+                  ;; Draw axes
+                  (let [canvas (reduce (fn [c i] (draw-point c [(/ w 2) i]))
+                                       canvas
+                                       (range h))]
+                    (reduce (fn [c i] (draw-point c [i (/ h 2)]))
+                            canvas
+                            (range w)))
+                  canvas)
+        ;; Narrow y range slightly to avoid clipping extremes
+        y-scale (* y-scale (/ (inc h) h))]
+    ;; Sample function and draw lines between consecutive points
+    (loop [i          0
+           prev-point nil
+           canvas     canvas]
+      (if (>= i w)
+        canvas
+        (let [;; x spans -0.5 to 0.5 (inclusive)
+              x      (- (/ i (dec w)) 0.5)
+              y      (/ (f (* x 2 x-scale)) y-scale -2)
+              p      [(* (+ x 0.5) (dec w)) (* (+ y 0.5) h)]
+              canvas (if prev-point (draw-line canvas prev-point p) canvas)]
+          (recur (inc i) p canvas))))))
+
 (defn plot->string
   "Plots a mathematical function and returns the string representation.
 
@@ -278,31 +330,9 @@
   [f [w h] x-scale y-scale &
    {:keys [axis]
     :or   {axis true}}]
-  (let [canvas  (new-canvas w h)
-        [w h]   (bounds canvas)
-        canvas  (if axis
-                  ;; Draw axes
-                  (let [canvas (reduce (fn [c i] (draw-point c [(/ w 2) i]))
-                                       canvas
-                                       (range h))]
-                    (reduce (fn [c i] (draw-point c [i (/ h 2)]))
-                            canvas
-                            (range w)))
-                  canvas)
-        ;; Narrow y range slightly to avoid clipping extremes
-        y-scale (* y-scale (/ (inc h) h))]
-    ;; Sample function and draw lines between consecutive points
-    (loop [i          0
-           prev-point nil
-           canvas     canvas]
-      (if (>= i w)
-        (canvas->string canvas)
-        (let [;; x spans -0.5 to 0.5 (inclusive)
-              x      (- (/ i (dec w)) 0.5)
-              y      (/ (f (* x 2 x-scale)) y-scale -2)
-              p      [(* (+ x 0.5) (dec w)) (* (+ y 0.5) h)]
-              canvas (if prev-point (draw-line canvas prev-point p) canvas)]
-          (recur (inc i) p canvas))))))
+  (-> (new-canvas w h)
+      (plot f :x-scale x-scale :y-scale y-scale :axis axis)
+      canvas->string))
 
 (defn print-plot!
   "Plots a mathematical function on a new canvas and prints it.
