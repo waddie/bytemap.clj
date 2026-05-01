@@ -15,8 +15,7 @@
                                    :git/tag "v0.5.1"}}
                    :extra-paths  ["test"]
                    :still/config {:colour? true}}}
- :deps    {io.github.waddie/still {:git/sha
-                                   "4f46130634e8fcf6eace89067330378be343e2c1"}
+ :deps    {io.github.waddie/still {:mvn/version "0.1.25"}
            metosin/malli          {:mvn/version "0.20.1"}
            org.clojure/clojure    {:mvn/version "1.12.3"}}
  :paths   ["src"]}

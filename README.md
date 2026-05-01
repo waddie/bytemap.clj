@@ -1,4 +1,4 @@
-# bytemap (Clojure)
+# Bytemap (Clojure)
 
 `bytemap` is a library for creating text-based graphics using Unicode braille characters. Each braille character contains 8 “pixels” arranged in a 2x4 grid, allowing for reasonably high-resolution terminal output.
 
@@ -14,7 +14,7 @@ Add to your `deps.edn`:
 
 ## Usage
 
-### Basic drawing
+### Basic Drawing
 
 ```clojure
 (require '[bytemap.core :as bm])
@@ -67,7 +67,7 @@ Add to your `deps.edn`:
 ;; ⢀⠔⠁⠀⠀⡇⠀⠀⠑⢄
 ```
 
-### Plotting functions
+### Plotting Functions
 
 ```clojure
 ;; Plot a sine wave (prints to stdout)
@@ -100,7 +100,7 @@ Add to your `deps.edn`:
 ;; ⠀⠀⠀⠀⠀⠀⠑⢤⣀⣀⢀⣀⡤⠊⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
 ```
 
-### Working with canvas as data
+### Working with Canvas as Data
 
 ```clojure
 ;; Canvas is an immutable data structure
@@ -113,32 +113,33 @@ Add to your `deps.edn`:
 
 ## API
 
-### Canvas creation and rendering
+### Canvas Creation and Rendering
 
 - `(new-canvas width height)` - Creates a new canvas. Dimensions are in “pixels” (braille characters), where each pixel is 2x4 sub-pixels.
 - `(bounds canvas)` - Returns `[width height]` in sub-pixels.
 - `(canvas->string canvas)` - Converts canvas to a string.
 - `(print-canvas! canvas)` - Prints canvas to standard output (side-effecting).
 
-### Drawing functions
+### Drawing Functions
 
 - `(draw-point canvas [x y])` - Draws a point at sub-pixel coordinates. Returns new canvas.
 - `(draw-point canvas [x y] false)` - Clears a point. Returns new canvas.
 - `(draw-line canvas [x1 y1] [x2 y2])` - Draws a line using Bresenham’s algorithm. Returns new canvas.
 
-### Plotting functions
+### Plotting Functions
 
+- `(plot canvas f & {:keys [axis x-scale y-scale]})` - Plots a function.
 - `(plot->string f [w h] x-scale y-scale & {:keys [axis]})` - Plots a function and returns the string representation.
 - `(print-plot! f [w h] x-scale y-scale & {:keys [axis]})` - Plots a function, prints to standard output, and returns nil.
 
-### Low-level functions
+### Low-Level Functions
 
-- `(braille byte-val)` - Converts a byte (0-255) to a braille character.
+- `(braille byte-val)` - Converts a byte (0–255) to a braille character.
 - `(bit-of-sub-pixel [x y])` - Maps sub-pixel coordinates to bit position.
 - `(set-sub-pixel num [x y] value)` - Sets or clears a specific sub-pixel bit.
 
 ## License
 
-Copyright © 2025-2026 Tom Waddington
+Copyright © 2025–2026 Tom Waddington
 
 Distributed under the MIT License. See LICENSE file for details.

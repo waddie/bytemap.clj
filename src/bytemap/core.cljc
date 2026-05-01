@@ -2,42 +2,14 @@
   "Text-based canvas using braille characters.
 
   Bytemap creates bitmaps using Unicode braille characters, where each character
-  represents a 2x4 grid of pixels. This allows for reasonably high-resolution
-  text-based graphics in terminal output.
-
-  Basic usage:
-    (require '[bytemap.core :as bm])
-
-    ;; Create a canvas and draw
-    (-> (bm/new-canvas 10 5)
-        (bm/draw-point [5 10])
-        (bm/draw-line [0 0] [20 20])
-        (bm/print-canvas!))
-
-    ;; Plot a function
-    (bm/print-plot! #(Math/sin %) [40 10] Math/PI 1)
-
-    ;; Or get the plot as a string
-    (bm/plot->string #(Math/cos %) [40 10] Math/PI 1)"
-  (:require [bytemap.util :as util]
-            [clojure.string :as s]))
+  represents a 2x4 grid of pixels. This enables reasonably high-resolution
+  text-based graphics in terminal output."
+  (:require [bytemap.schema :as schema]
+            [bytemap.util :as util]
+            [clojure.string :as s]
+            [still.core :refer [snap!]]))
 
 ;; Malli Schemas
-(def Point "Schema for a 2D point [x y]" [:tuple :int :int])
-
-(def Subpixel
-  "Schema for a subpixel coordinate [x y] where x is 0-1, y is 0-3"
-  [:tuple
-   [:int
-    {:max 1
-     :min 0}]
-   [:int
-    {:max 3
-     :min 0}]])
-
-(def Canvas
-  "Schema for a canvas data structure"
-  [:map [:width :int] [:height :int] [:pixels [:vector util/ByteValue]]])
 
 ;; Constants
 (def ^:private braille-offset 0x2800)
@@ -48,14 +20,14 @@
   "Converts a byte (0-255) to a braille Unicode character.
 
   Each bit in the byte corresponds to one of the 8 dots in a braille character.
-  The byte is added to the braille Unicode offset (0x2800) to get the final character.
-
-  Example:
-    (braille 0)   => \"⠀\"  ; blank
-    (braille 255) => \"⣿\"  ; all dots filled"
-  {:malli/schema [:function [:=> [:cat util/ByteValue] :string]]}
+  The byte is added to the braille Unicode offset (0x2800) to get the final character."
+  {:malli/schema [:function [:=> [:cat schema/ByteValue] :string]]}
   [byte-val]
   (str (char (+ braille-offset byte-val))))
+
+(snap! (braille 0) "⠀")
+(snap! (braille 64) "⡀")
+(snap! (braille 255) "⣿")
 
 (defn bit-of-subpixel
   "Maps a subpixel coordinate [x y] to its corresponding bit position (0-7).
@@ -68,55 +40,51 @@
     [0,0]=0  [1,0]=3
     [0,1]=1  [1,1]=4
     [0,2]=2  [1,2]=5
-    [0,3]=6  [1,3]=7
-
-  Example:
-    (bit-of-subpixel [0 0]) => 0
-    (bit-of-subpixel [1 3]) => 7"
-  {:malli/schema [:function [:=> [:cat Subpixel] util/Bit]]}
+    [0,3]=6  [1,3]=7"
+  {:malli/schema [:function [:=> [:cat schema/Subpixel] schema/Bit]]}
   [[x y]]
   (if (= y 3) (+ 6 x) (+ (* 3 x) y)))
+
+(snap! (bit-of-subpixel [0 0]) 0)
+(snap! (bit-of-subpixel [1 3]) 7)
 
 (defn set-subpixel
   "Sets or clears a specific subpixel in a byte value.
 
-  Returns a new byte with the specified subpixel bit set or cleared.
-
-  Example:
-    (set-subpixel 0 [0 0] true)  => 1
-    (set-subpixel 255 [0 0] false) => 254"
+  Returns a new byte with the specified subpixel bit set or cleared."
   {:malli/schema [:function
-                  [:=> [:cat util/ByteValue Subpixel :any] util/ByteValue]]}
+                  [:=> [:cat schema/ByteValue schema/Subpixel :any]
+                   schema/ByteValue]]}
   [num subpixel value]
   (util/set-bit num (bit-of-subpixel subpixel) value))
+
+(snap! (set-subpixel 0 [0 0] true) 1)
+(snap! (set-subpixel 255 [0 0] false) 254)
 
 (defn new-canvas
   "Creates a new canvas with the specified width and height in 'pixels'.
 
   Each pixel is a braille character representing a 2x4 grid of subpixels.
-  So a 10x5 canvas has dimensions of 20x20 in subpixel coordinates.
-
-  Example:
-    (new-canvas 10 5)
-    => {:width 10, :height 5, :pixels [0 0 0 ...]}"
-  {:malli/schema [:function [:=> [:cat :int :int] Canvas]]}
+  So, a 10x5 canvas has dimensions of 20x20 in subpixel coordinates."
+  {:malli/schema [:function [:=> [:cat :int :int] schema/Canvas]]}
   [width height]
   {:height height
    :pixels (vec (repeat (* width height) 0))
    :width  width})
 
+(snap! (new-canvas 10 5)
+       {:height 5
+        :pixels [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+                 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
+        :width  10})
+
 (defn bounds
-  "Returns the canvas dimensions in subpixels [width height].
-
-  Since each pixel is 2x4 subpixels, the subpixel dimensions are:
-  - width * 2
-  - height * 4
-
-  Example:
-    (bounds (new-canvas 10 5)) => [20 20]"
-  {:malli/schema [:function [:=> [:cat Canvas] [:tuple :int :int]]]}
+  "Returns the canvas dimensions in subpixels [width height], where each pixel is 2x4 subpixels."
+  {:malli/schema [:function [:=> [:cat schema/Canvas] [:tuple :int :int]]]}
   [{:keys [width height]}]
   [(* 2 width) (* 4 height)])
+
+(snap! (bounds (new-canvas 10 5)) [20 20])
 
 (defn draw-point
   "Draws a point at subpixel coordinates [x y] on the canvas.
@@ -125,14 +93,10 @@
   nearest integer. Points outside canvas bounds are silently ignored.
 
   The optional value parameter determines whether to set (true) or clear (false)
-  the point. Defaults to true.
-
-  Example:
-    (-> (new-canvas 10 5)
-        (draw-point [10 10])
-        (draw-point [5 5] false))  ; clear a point"
-  {:malli/schema [:function [:=> [:cat Canvas Point] Canvas]
-                  [:=> [:cat Canvas Point :any] Canvas]]}
+  the point. Defaults to true."
+  {:malli/schema [:function
+                  [:=> [:cat schema/Canvas schema/Point] schema/Canvas]
+                  [:=> [:cat schema/Canvas schema/Point :any] schema/Canvas]]}
   ([canvas point] (draw-point canvas point true))
   ([canvas [x y] value]
    (let [{:keys [width height _]} canvas
@@ -150,17 +114,17 @@
           (fn [pixels]
             (update pixels pixel-ix #(set-subpixel % subpixel value)))))))))
 
+(snap! (-> (new-canvas 4 2)
+           (draw-point [4 4]))
+       {:height 2
+        :pixels [0 0 0 0 0 0 1 0]
+        :width  4})
+
 (defn canvas->string
   "Converts a canvas to a string representation using braille characters.
 
-  Returns a multi-line string where each line represents one row of the canvas.
-
-  Example:
-    (-> (new-canvas 5 3)
-        (draw-point [5 6])
-        (canvas->string))
-    => \"⠀⠀⡀⠀⠀\\n⠀⠀⠀⠀⠀\\n⠀⠀⠀⠀⠀\""
-  {:malli/schema [:function [:=> [:cat Canvas] :string]]}
+  Returns a multi-line string where each line represents one row of the canvas."
+  {:malli/schema [:function [:=> [:cat schema/Canvas] :string]]}
   [{:keys [width height pixels]}]
   (apply str
          (for [y (range height)]
@@ -170,19 +134,15 @@
                          (braille (nth pixels i))))
                 (when (< y (dec height)) "\n")))))
 
+
+(-> (new-canvas 5 3)
+    (draw-point [5 6])
+    (canvas->string))
 (defn print-canvas!
   "Prints a canvas to stdout using braille characters.
 
-  Side-effecting function that prints the canvas and returns nil.
-
-  NOTE: This function outputs line-by-line to avoid nREPL's 1024-byte
-  buffer boundary issue which can corrupt UTF-8 multibyte sequences.
-
-  Example:
-    (-> (new-canvas 10 5)
-        (draw-line [0 0] [20 20])
-        (print-canvas!))"
-  {:malli/schema [:function [:=> [:cat Canvas] :nil]]}
+  Outputs line-by-line to avoid buffer boundary issues with multibyte characters."
+  {:malli/schema [:function [:=> [:cat schema/Canvas] :nil]]}
   [canvas]
   (let [s     (canvas->string canvas)
         lines (s/split s #"\n")]
@@ -206,6 +166,7 @@
 
 (defn ^:private make-vec2
   "Constructs a 2D vector from major/minor axis values.
+
   major-axis is 0 for x, 1 for y."
   [major-axis major minor]
   (case major-axis
@@ -213,16 +174,13 @@
     1 [minor major]))
 
 (defn draw-line
-  "Draws a line from start point to end point using Bresenham's algorithm.
+  "Draws a line from start point to end point using Bresenham’s algorithm.
 
   Returns a new canvas with the line drawn. Both start and end are subpixel
-  coordinates.
-
-  Example:
-    (-> (new-canvas 10 5)
-        (draw-line [0 0] [20 20])
-        (draw-line [0 20] [20 0]))"
-  {:malli/schema [:function [:=> [:cat Canvas Point Point] Canvas]]}
+  coordinates."
+  {:malli/schema [:function
+                  [:=> [:cat schema/Canvas schema/Point schema/Point]
+                   schema/Canvas]]}
   [canvas start end]
   (let [x-axis      0
         y-axis      1
@@ -239,7 +197,6 @@
         minor-step  (sign (- (nth end minor-axis) (nth start minor-axis)))
         run         (- (nth end major-axis) (nth start major-axis))
         rise        (Math/abs (- (nth end minor-axis) (nth start minor-axis)))]
-    ;; Bresenham's algorithm using loop/recur
     (loop [canvas canvas
            major  (nth start major-axis)
            minor  (nth start minor-axis)
@@ -251,6 +208,15 @@
                             [(+ minor minor-step) (- err (* 2 run))]
                             [minor err])]
           (recur canvas (inc major) minor (+ err (* 2 rise))))))))
+
+(snap! (-> (new-canvas 10 5)
+           (draw-line [0 0] [20 20])
+           (draw-line [0 20] [20 0]))
+       {:height 5
+        :pixels [17 132 0 0 0 0 0 0 128 20 0 0 17 132 0 0 128 20 1 0 0 0 0 0 145
+                 148 1 0 0 0 0 0 128 20 1 0 17 132 0 0 128 20 1 0 0 0 0 0 17
+                 132]
+        :width  10})
 
 (defn plot
   "Plots a mathematical function on a canvas.
@@ -267,13 +233,9 @@
   The function is sampled at regular intervals across the canvas width,
   and consecutive points are connected with lines.
 
-  Returns the canvas.
-
-  Example:
-    (plot (new-canvas 10 10) #(Math/sin %) Math/PI 1)
-    (plot (new-canvas 10 10) #(Math/cos %) Math/PI 1 :axis false)"
-  {:malli/schema [:function [:=> [:cat Canvas fn?] Canvas]
-                  [:=> [:cat Canvas fn? [:* :any]] Canvas]]}
+  Returns the new canvas."
+  {:malli/schema [:function [:=> [:cat schema/Canvas fn?] schema/Canvas]
+                  [:=> [:cat schema/Canvas fn? [:* :any]] schema/Canvas]]}
   [canvas f &
    {:keys [axis x-scale y-scale]
     :or   {axis    true
@@ -305,25 +267,16 @@
           (recur (inc i) p canvas))))))
 
 (defn plot->string
-  "Plots a mathematical function and returns the string representation.
+  "Convenience function that plots a mathematical function and returns the string representation.
 
   Arguments:
   - f: Function to plot (takes a number, returns a number)
-  - [w h]: Canvas dimensions in pixels
+  - [w h]: schema/Canvas dimensions in pixels
   - x-scale: The range of x values (from -x-scale to +x-scale)
   - y-scale: The range of y values (from -y-scale to +y-scale)
 
   Options:
-  - :axis - Whether to draw x and y axes (default: true)
-
-  The function is sampled at regular intervals across the canvas width,
-  and consecutive points are connected with lines.
-
-  Returns the canvas as a string using braille characters.
-
-  Example:
-    (plot->string #(Math/sin %) [40 10] Math/PI 1)
-    (plot->string #(Math/cos %) [20 10] Math/PI 1 :axis false)"
+  - :axis - Whether to draw x and y axes (default: true)"
   {:malli/schema
    [:function [:=> [:cat fn? [:tuple :int :int] number? number?] :string]
     [:=> [:cat fn? [:tuple :int :int] number? number? [:* :any]] :string]]}
@@ -335,23 +288,16 @@
       canvas->string))
 
 (defn print-plot!
-  "Plots a mathematical function on a new canvas and prints it.
+  "Convenience function that plots a mathematical function on a new canvas and prints it.
 
   Arguments:
   - f: Function to plot (takes a number, returns a number)
-  - [w h]: Canvas dimensions in pixels
+  - [w h]: schema/Canvas dimensions in pixels
   - x-scale: The range of x values (from -x-scale to +x-scale)
   - y-scale: The range of y values (from -y-scale to +y-scale)
 
   Options:
-  - :axis - Whether to draw x and y axes (default: true)
-
-  The function is sampled at regular intervals across the canvas width,
-  and consecutive points are connected with lines.
-
-  Example:
-    (print-plot! #(Math/sin %) [40 10] Math/PI 1)
-    (print-plot! #(Math/cos %) [20 10] Math/PI 1 :axis false)"
+  - :axis - Whether to draw x and y axes (default: true)"
   {:malli/schema
    [:function [:=> [:cat fn? [:tuple :int :int] number? number?] :nil]
     [:=> [:cat fn? [:tuple :int :int] number? number? [:* :any]] :nil]]}
