@@ -1,7 +1,7 @@
 (ns bytemap.drawing-test
-  "Tests for bytemap drawing functionality, ported from Janet implementation."
-  (:require [clojure.test :refer [deftest is testing]]
-            [bytemap.core :as bm]))
+  "Tests for bytemap drawing functionality."
+  (:require [bytemap.core :as bm]
+            [clojure.test :refer [deftest is testing]]))
 
 (deftest union-jack-test
   (testing "Drawing the union jack pattern"
