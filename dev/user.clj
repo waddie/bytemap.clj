@@ -1,10 +1,12 @@
 (ns user
   (:require [bytemap.core :as bm]
-            [still.core :refer [snap!]]))
+            [bytemap.plot :as bp]
+            [still.core :refer [snap!]])
+  (:import (java.util Random)))
 
 (snap!
  (str "\n"
-      (bm/plot->string #(Math/sqrt (abs (- 1 (Math/pow % 2))))
+      (bp/plot->string #(Math/sqrt (abs (- 1 (Math/pow % 2))))
                        [50 10]
                        1 Math/PI
                        :axis true))
@@ -25,7 +27,7 @@
       (let [x-scale 1
             y-scale Math/PI]
         (-> (bm/new-canvas 50 10)
-            (bm/plot #(Math/sqrt (abs (- 1 (Math/pow % 2))))
+            (bp/plot #(Math/sqrt (abs (- 1 (Math/pow % 2))))
                      :axis true
                      :x-scale x-scale
                      :y-scale y-scale)
@@ -41,3 +43,6 @@
 ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
 ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
 ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀")
+
+(let [random (Random. 1234)]
+  (into (sorted-map) (frequencies (stream-seq! (.ints random 1000 0 11)))))

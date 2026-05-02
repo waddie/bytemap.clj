@@ -42,69 +42,6 @@
 ⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿
 ⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿")))))
 
-(deftest sine-wave-test
-  (testing "Plotting a sine wave"
-    (let
-      [expected
-       "
-⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⡇⠀⠀⠀⠀⠀⢀⠤⠖⠚⠒⠒⢤⡀⠀⠀⠀⠀⠀⠀
-⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⡇⠀⠀⠀⢀⠔⠁⠀⠀⠀⠀⠀⠀⠈⠢⡀⠀⠀⠀⠀
-⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⡇⠀⢀⠔⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⢆⠀⠀⠀
-⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⡇⢠⠊⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠱⡀⠀
-⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⡷⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠘⢄
-⠹⡉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⢉⠝⡏⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉
-⠀⠘⢄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢠⠊⠀⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-⠀⠀⠈⠢⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⡰⠁⠀⠀⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-⠀⠀⠀⠀⠑⢄⠀⠀⠀⠀⠀⠀⠀⠀⡠⠊⠀⠀⠀⠀⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-⠀⠀⠀⠀⠀⠀⠑⢤⣀⣀⢀⣀⡤⠊⠀⠀⠀⠀⠀⠀⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-"]
-      ;; Capture output from print-plot! function
-      (is (= expected
-             (with-out-str
-               (println)
-               (bm/print-plot! #(Math/sin %) [40 10] Math/PI 1)))))))
-
-(deftest plot-draws-lines-test
-  (testing "Plot draws lines rather than individual points"
-    (let
-      [expected
-       "
-⠀⠀⠀⠀⠀⠀⢠⠲⡀⠀
-⠀⠀⠀⠀⠀⠀⡇⠀⢇⠀
-⠀⠀⠀⠀⠀⢰⠁⠀⠸⡀
-⠀⠀⠀⠀⠀⡸⠀⠀⠀⡇
-⠀⠀⠀⠀⠀⡇⠀⠀⠀⢣
-⡇⠀⠀⠀⢰⠁⠀⠀⠀⠈
-⢸⠀⠀⠀⡸⠀⠀⠀⠀⠀
-⠈⡆⠀⠀⡇⠀⠀⠀⠀⠀
-⠀⢇⠀⢸⠀⠀⠀⠀⠀⠀
-⠀⠘⣄⠇⠀⠀⠀⠀⠀⠀
-"]
-      (is (=
-           expected
-           (with-out-str
-             (println)
-             (bm/print-plot! #(Math/sin %) [10 10] Math/PI 1 :axis false)))))))
-
-(deftest plot->string-test
-  (testing "plot->string returns string without printing"
-    (let
-      [expected
-       "
-⠀⠀⠀⠀⠀⠀⢠⠲⡀⠀
-⠀⠀⠀⠀⠀⠀⡇⠀⢇⠀
-⠀⠀⠀⠀⠀⢰⠁⠀⠸⡀
-⠀⠀⠀⠀⠀⡸⠀⠀⠀⡇
-⠀⠀⠀⠀⠀⡇⠀⠀⠀⢣
-⡇⠀⠀⠀⢰⠁⠀⠀⠀⠈
-⢸⠀⠀⠀⡸⠀⠀⠀⠀⠀
-⠈⡆⠀⠀⡇⠀⠀⠀⠀⠀
-⠀⢇⠀⢸⠀⠀⠀⠀⠀⠀
-⠀⠘⣄⠇⠀⠀⠀⠀⠀⠀"
-       result
-       (str "\n" (bm/plot->string #(Math/sin %) [10 10] Math/PI 1 :axis false))]
-      (is (= expected result)))))
-
 (deftest line-test
   (testing "Drawing multiple lines"
     (let [canvas (-> (bm/new-canvas 10 5)

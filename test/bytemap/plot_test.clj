@@ -1,10 +1,11 @@
 (ns bytemap.plot-test
   "Tests for bytemap plotting functionality."
   (:require [bytemap.core :as bm]
-            [clojure.test :refer [deftest testing]]
+            [bytemap.plot :as bp]
+            [clojure.test :refer [deftest is testing]]
             [still.core :refer [snap!]]))
 
-(deftest plot-test
+(deftest intermediate-plot-test
   (testing "Plotting a function"
     (let [canvas (bm/new-canvas 10 5)]
       (snap! canvas
@@ -12,7 +13,7 @@
               :pixels [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
                        0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
               :width  10})
-      (let [canvas (bm/plot canvas #(Math/sqrt (abs (- 1 (Math/pow % 2)))))]
+      (let [canvas (bp/plot canvas #(Math/sqrt (abs (- 1 (Math/pow % 2)))))]
         (snap! canvas
                {:height 5
                 :pixels [0 128 52 22 26 95 18 166 64 0 176 1 0 0 0 71 0 0 8 70
@@ -26,3 +27,66 @@
 ⠮⠤⠤⠤⠤⡧⠤⠤⠤⠵
 ⠀⠀⠀⠀⠀⡇⠀⠀⠀⠀
 ⠀⠀⠀⠀⠀⡇⠀⠀⠀⠀")))))
+
+(deftest sine-wave-test
+  (testing "Plotting a sine wave"
+    (let
+      [expected
+       "
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⡇⠀⠀⠀⠀⠀⢀⠤⠖⠚⠒⠒⢤⡀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⡇⠀⠀⠀⢀⠔⠁⠀⠀⠀⠀⠀⠀⠈⠢⡀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⡇⠀⢀⠔⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⢆⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⡇⢠⠊⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠱⡀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⡷⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠘⢄
+⠹⡉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⢉⠝⡏⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉
+⠀⠘⢄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢠⠊⠀⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠈⠢⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⡰⠁⠀⠀⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠑⢄⠀⠀⠀⠀⠀⠀⠀⠀⡠⠊⠀⠀⠀⠀⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠑⢤⣀⣀⢀⣀⡤⠊⠀⠀⠀⠀⠀⠀⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+"]
+      ;; Capture output from print-plot! function
+      (is (= expected
+             (with-out-str
+               (println)
+               (bp/print-plot! #(Math/sin %) [40 10] Math/PI 1)))))))
+
+(deftest plot-draws-lines-test
+  (testing "Plot draws lines rather than individual points"
+    (let
+      [expected
+       "
+⠀⠀⠀⠀⠀⠀⢠⠲⡀⠀
+⠀⠀⠀⠀⠀⠀⡇⠀⢇⠀
+⠀⠀⠀⠀⠀⢰⠁⠀⠸⡀
+⠀⠀⠀⠀⠀⡸⠀⠀⠀⡇
+⠀⠀⠀⠀⠀⡇⠀⠀⠀⢣
+⡇⠀⠀⠀⢰⠁⠀⠀⠀⠈
+⢸⠀⠀⠀⡸⠀⠀⠀⠀⠀
+⠈⡆⠀⠀⡇⠀⠀⠀⠀⠀
+⠀⢇⠀⢸⠀⠀⠀⠀⠀⠀
+⠀⠘⣄⠇⠀⠀⠀⠀⠀⠀
+"]
+      (is (=
+           expected
+           (with-out-str
+             (println)
+             (bp/print-plot! #(Math/sin %) [10 10] Math/PI 1 :axis false)))))))
+
+(deftest plot->string-test
+  (testing "plot->string returns string without printing"
+    (let
+      [expected
+       "
+⠀⠀⠀⠀⠀⠀⢠⠲⡀⠀
+⠀⠀⠀⠀⠀⠀⡇⠀⢇⠀
+⠀⠀⠀⠀⠀⢰⠁⠀⠸⡀
+⠀⠀⠀⠀⠀⡸⠀⠀⠀⡇
+⠀⠀⠀⠀⠀⡇⠀⠀⠀⢣
+⡇⠀⠀⠀⢰⠁⠀⠀⠀⠈
+⢸⠀⠀⠀⡸⠀⠀⠀⠀⠀
+⠈⡆⠀⠀⡇⠀⠀⠀⠀⠀
+⠀⢇⠀⢸⠀⠀⠀⠀⠀⠀
+⠀⠘⣄⠇⠀⠀⠀⠀⠀⠀"
+       result
+       (str "\n" (bp/plot->string #(Math/sin %) [10 10] Math/PI 1 :axis false))]
+      (is (= expected result)))))
