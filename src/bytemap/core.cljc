@@ -134,10 +134,15 @@
                          (braille (nth pixels i))))
                 (when (< y (dec height)) "\n")))))
 
+(snap! (str "\n"
+            (-> (new-canvas 5 3)
+                (draw-point [5 6])
+                (canvas->string)))
+       "
+⠀⠀⠀⠀⠀
+⠀⠀⠠⠀⠀
+⠀⠀⠀⠀⠀")
 
-(-> (new-canvas 5 3)
-    (draw-point [5 6])
-    (canvas->string))
 (defn print-canvas!
   "Prints a canvas to stdout using braille characters.
 

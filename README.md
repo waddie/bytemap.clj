@@ -1,3 +1,5 @@
+[![Clojars Project](https://img.shields.io/clojars/v/dev.tomwaddington/bytemap.svg)](https://clojars.org/dev.tomwaddington/bytemap)
+
 # Bytemap (Clojure)
 
 `bytemap` is a library for creating text-based graphics using Unicode braille characters. Each braille character contains 8 “pixels” arranged in a 2x4 grid, allowing for reasonably high-resolution terminal output.

@@ -1,7 +1,8 @@
 (ns build
-  (:require [clojure.tools.build.api :as b]))
+  (:require [clojure.tools.build.api :as b]
+            [deps-deploy.deps-deploy :as dd]))
 
-(def lib 'io.github.waddie/bytemap)
+(def lib 'dev.tomwaddington/bytemap)
 (def version (format "0.1.%s" (b/git-count-revs nil)))
 (def class-dir "target/classes")
 (def basis (b/create-basis {:project "deps.edn"}))
@@ -67,3 +68,10 @@
               :jar-file  jar-file
               :lib       lib
               :version   version}))
+
+(defn deploy
+  [_]
+  (dd/deploy {:artifact  jar-file
+              :installer :remote
+              :pom-file  (b/pom-path {:class-dir class-dir
+                                      :lib       lib})}))

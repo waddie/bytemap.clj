@@ -24,6 +24,26 @@
                                                                                                  {:op :rest, :spec :any}],
                                                                                           :ret :nil,
                                                                                           :min-arity 1}}},
+                                                      histogram {:arities {2 {:args [{:op :keys,
+                                                                                      :req {:width :int,
+                                                                                            :height :int,
+                                                                                            :pixels :vector}}
+                                                                                     :map],
+                                                                              :ret {:op :keys,
+                                                                                    :req {:width :int,
+                                                                                          :height :int,
+                                                                                          :pixels :vector}}},
+                                                                           :varargs {:args [{:op :keys,
+                                                                                             :req {:width :int,
+                                                                                                   :height :int,
+                                                                                                   :pixels :vector}}
+                                                                                            :map
+                                                                                            {:op :rest, :spec :any}],
+                                                                                     :ret {:op :keys,
+                                                                                           :req {:width :int,
+                                                                                                 :height :int,
+                                                                                                 :pixels :vector}},
+                                                                                     :min-arity 2}}},
                                                       plot->string {:arities {4 {:args [:fn :seqable :number :number],
                                                                                  :ret :string},
                                                                               :varargs {:args [:fn
@@ -95,10 +115,10 @@
                                                                                           :height :int,
                                                                                           :pixels :vector}}}}}},
                                         bytemap.util {idiv {:arities {2 {:args [:int :int], :ret :int}}},
+                                                      format-float {:arities {1 {:args [:number], :ret :string}}},
                                                       set-bit {:arities {3 {:args [:int :int :any], :ret :int}}},
                                                       calculate-std-dev {:arities {1 {:args [:any], :ret :double},
                                                                                    2 {:args [:any :number],
                                                                                       :ret :double}}},
                                                       calculate-mean {:arities {1 {:args [:any], :ret :double},
-                                                                                2 {:args [:any :number], :ret :double}}},
-                                                      format-double {:arities {1 {:args [:number], :ret :string}}}}}}}}
+                                                                                2 {:args [:any :number], :ret :double}}}}}}}}

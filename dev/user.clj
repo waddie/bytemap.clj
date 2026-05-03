@@ -64,7 +64,21 @@
 ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀
 ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀")
 
-(let [random (Random. 1234)
-      nums   (stream-seq! (.ints random 1000 0 11))]
-  (println nums)
-  (bp/plot-histogram nums))
+(comment
+  (let [random (Random. 1234)
+        nums   (stream-seq! (.ints random 10000000 0 11))]
+    (bp/plot-histogram nums)))
+
+(snap! (str "\n"
+            (bm/canvas->string (loop [canvas (bm/new-canvas 5 3)
+                                      x      0
+                                      y      0]
+                                 (if (and (= x 10) (= y 12))
+                                   canvas
+                                   (recur (bm/draw-point canvas [x y])
+                                          (if (= 10 x) 0 (+ 2 x))
+                                          (if (= 10 x) (+ 2 y) y))))))
+       "
+⠅⠅⠅⠅⠅
+⠅⠅⠅⠅⠅
+⠅⠅⠅⠅⠅")

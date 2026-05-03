@@ -21,15 +21,18 @@
   #?(:clj (long (Math/floor (/ a b)))
      :cljs (js/Math.floor (/ a b))))
 
-(defn format-double
+(snap! (idiv 7 2) 3)
+(snap! (idiv -7 2) -4)
+
+(defn format-float
   "Format a floating point number."
   {:malli/schema [:function [:=> [:cat number?] :string]]}
   [x]
-  #?(:clj (format "%1$9.6g" x)
+  #?(:clj (format "%1$.6f" x)
      :cljs x))
 
-(snap! (idiv 7 2) 3)
-(snap! (idiv -7 2) -4)
+(snap! (format-float 4.0) "4.000000")
+(snap! (format-float 0.130434982092987) "0.130435")
 
 (defn calculate-mean
   {:malli/schema [:function [:=> [:cat [:seqable number?]] :double]

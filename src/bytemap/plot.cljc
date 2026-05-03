@@ -54,9 +54,9 @@
               p      [(* (+ x 0.5) (dec w)) (* (+ y 0.5) h)]
               canvas (if prev-point (draw-line canvas prev-point p) canvas)]
           (recur (inc i) p canvas))))))
-
-(defn histogram
-  "Plots a map as a histogram on a canvas.
+(comment
+  (defn histogram
+    "Plots a map as a histogram on a canvas.
 
   Arguments:
   - canvas: A canvas
@@ -66,51 +66,51 @@
   - :orientation - Whether to draw the histogram with :vertical or :horizontal bars (default: :vertical)
 
   Returns the new canvas."
-  {:malli/schema
-   [:function [:=> [:cat schema/Canvas [:map-of :any number?]] schema/Canvas]
-    [:=> [:cat schema/Canvas [:map-of :any number?] [:* :any]] schema/Canvas]]}
-  [canvas bins &
-   {:keys [orientation]
-    :or   {orientation :vertical}}]
-  (let [[w h]   (bounds canvas)
-        max-bin (apply max (vals bins))]
-    (match [orientation]
-      [:vertical] (let [bin-width (Math/floor (/ w (count (keys bins))))]
-                    ; calculate heights as percentage of total height
-                    ;
-                    ; draw lines
-                  )
-      [:horizontal] (let [bin-height (Math/floor (/ h (count (keys bins))))])
-      :else #?(:clj (throw (RuntimeException. (str "Unknown orientation "
-                                                   orientation)))
-               :cljs (throw (str "Unknown orientation " orientation))))))
-
-(defn plot-histogram
-  "Plots and prints a histogram on a new canvas."
-  {:malli/schema [:function [:=> [:cat [:seqable number?]] :nil]
-                  [:=> [:cat [:seqable number?] [:* :any]] :nil]]}
-  [xs &
-   {:keys [w h stats orientation]
-    :or   {orientation :vertical
-           stats       true}}]
-  (let [mean    (when stats
-                  (str "  μ = " (util/format-double (util/calculate-mean xs))))
-        std-dev (when stats
-                  (str "  σ = "
-                       (util/format-double (util/calculate-std-dev xs))))
-        bins    (into (sorted-map) (frequencies xs))
-        width   (if (= orientation :vertical)
-                  (or w (count (keys bins)))
-                  (or h (count (keys bins))))
-        height  (if (= orientation :vertical)
-                  (or h (apply max (vals bins)))
-                  (or w (apply max (vals bins))))
-        hist    (histogram (new-canvas width height)
-                           bins
-                           :orientation
-                           orientation)]
-    (print-canvas! hist)
-    (when stats (println mean) (println std-dev))))
+    {:malli/schema
+     [:function [:=> [:cat schema/Canvas [:map-of :any number?]] schema/Canvas]
+      [:=> [:cat schema/Canvas [:map-of :any number?] [:* :any]]
+       schema/Canvas]]}
+    [canvas bins &
+     {:keys [orientation]
+      :or   {orientation :vertical}}]
+    (let [[w h]   (bounds canvas)
+          max-bin (apply max (vals bins))]
+      (match [orientation]
+        [:vertical] (let [bin-width (Math/floor (/ w (count (keys bins))))]
+                      ; calculate heights as percentage of total height
+                      ;
+                      ; draw lines
+                    )
+        [:horizontal] (let [bin-height (Math/floor (/ h (count (keys bins))))])
+        :else #?(:clj (throw (RuntimeException. (str "Unknown orientation "
+                                                     orientation)))
+                 :cljs (throw (str "Unknown orientation " orientation))))))
+  (defn plot-histogram
+    "Plots and prints a histogram on a new canvas."
+    {:malli/schema [:function [:=> [:cat [:seqable number?]] :nil]
+                    [:=> [:cat [:seqable number?] [:* :any]] :nil]]}
+    [xs &
+     {:keys [w h stats orientation]
+      :or   {orientation :vertical
+             stats       true}}]
+    (let [bins      (into (sorted-map) (frequencies xs))
+          bin-count (count (keys bins))
+          max-bin   (apply max (vals bins))
+          max-bar   (if (> max-bin 128) 128 max-bin)
+          width     (if (= orientation :vertical)
+                      (or w bin-count)
+                      (or h bin-count))
+          height    (if (= orientation :vertical) (or h max-bar) (or w max-bar))
+          hist      (histogram (new-canvas width height)
+                               bins
+                               :orientation
+                               orientation)]
+      (print-canvas! hist)
+      (when stats
+        (let [mean    (util/calculate-mean xs)
+              std-dev (util/calculate-std-dev xs mean)]
+          (println (str "  μ = " (util/format-float mean)))
+          (println (str "  σ = " (util/format-float std-dev))))))))
 
 (defn plot->string
   "Convenience function that plots a mathematical function and returns the string representation.
