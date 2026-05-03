@@ -12,7 +12,7 @@
    {:max 255
     :min 0}])
 
-(def Point "Schema for a 2D point [x y]" [:tuple :int :int])
+(def Point "Schema for a 2D point [x y]" [:tuple number? number?])
 
 (def Subpixel
   "Schema for a subpixel coordinate [x y] where x is 0-1, y is 0-3"
