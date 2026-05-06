@@ -20,7 +20,7 @@ Add to your `deps.edn`:
 
 ```clojure
 (require '[bytemap.core :as bm]
-         '[bytemap.plot :as bp]')
+         '[bytemap.plot :as bp])
 
 ;; Create a canvas and draw points
 (-> (bm/new-canvas 10 5)

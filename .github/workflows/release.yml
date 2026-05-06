@@ -1,0 +1,41 @@
+name: Create Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6.0.2
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+
+      - uses: actions/setup-java@v5.2.0
+        with:
+          java-version: '21'
+          distribution: 'corretto'
+
+      - name: Install Clojure tools
+        uses: DeLaGuardo/setup-clojure@13.6.0
+        with:
+          cli: latest
+          clj-kondo: latest
+          zprint: latest
+
+      - name: Build JAR
+        run: |
+          clojure -T:build jar-all
+
+      - name: Create release
+        uses: softprops/action-gh-release@v3.0.0
+        with:
+          files: target/*.jar
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
