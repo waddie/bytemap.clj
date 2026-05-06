@@ -19,7 +19,8 @@ Add to your `deps.edn`:
 ### Basic Drawing
 
 ```clojure
-(require '[bytemap.core :as bm])
+(require '[bytemap.core :as bm]
+         '[bytemap.plot :as bp]')
 
 ;; Create a canvas and draw points
 (-> (bm/new-canvas 10 5)
@@ -73,7 +74,7 @@ Add to your `deps.edn`:
 
 ```clojure
 ;; Plot a sine wave (prints to stdout)
-(bm/print-plot! #(Math/sin %) [40 10] Math/PI 1)
+(bp/print-plot! #(Math/sin %) [40 10] Math/PI 1)
 ;; ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⡇⠀⠀⠀⠀⠀⢀⠤⠖⠚⠒⠒⢤⡀⠀⠀⠀⠀⠀⠀
 ;; ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⡇⠀⠀⠀⢀⠔⠁⠀⠀⠀⠀⠀⠀⠈⠢⡀⠀⠀⠀⠀
 ;; ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⡇⠀⢀⠔⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⢆⠀⠀⠀
@@ -89,7 +90,7 @@ Add to your `deps.edn`:
 (def plot-str (bm/plot->string #(Math/cos %) [40 10] Math/PI 1))
 
 ;; Plot without axes
-(bm/print-plot! #(Math/sin %) [40 10] Math/PI 1 :axis false)
+(bp/print-plot! #(Math/sin %) [40 10] Math/PI 1 :axis false)
 ;; ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⠤⠖⠚⠒⠒⢤⡀⠀⠀⠀⠀⠀⠀
 ;; ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⠔⠁⠀⠀⠀⠀⠀⠀⠈⠢⡀⠀⠀⠀⠀
 ;; ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⠔⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⢆⠀⠀⠀
@@ -115,26 +116,26 @@ Add to your `deps.edn`:
 
 ## API
 
-### Canvas Creation and Rendering
+### Canvas Creation and Rendering (bytemap.core)
 
 - `(new-canvas width height)` - Creates a new canvas. Dimensions are in “pixels” (braille characters), where each pixel is 2x4 sub-pixels.
 - `(bounds canvas)` - Returns `[width height]` in sub-pixels.
 - `(canvas->string canvas)` - Converts canvas to a string.
 - `(print-canvas! canvas)` - Prints canvas to standard output (side-effecting).
 
-### Drawing Functions
+### Drawing Functions (bytemap.core)
 
 - `(draw-point canvas [x y])` - Draws a point at sub-pixel coordinates. Returns new canvas.
 - `(draw-point canvas [x y] false)` - Clears a point. Returns new canvas.
 - `(draw-line canvas [x1 y1] [x2 y2])` - Draws a line using Bresenham’s algorithm. Returns new canvas.
 
-### Plotting Functions
+### Plotting Functions (bytemap.plot)
 
 - `(plot canvas f & {:keys [axis x-scale y-scale]})` - Plots a function.
 - `(plot->string f [w h] x-scale y-scale & {:keys [axis]})` - Plots a function and returns the string representation.
 - `(print-plot! f [w h] x-scale y-scale & {:keys [axis]})` - Plots a function, prints to standard output, and returns nil.
 
-### Low-Level Functions
+### Low-Level Functions (bytemap.core)
 
 - `(braille byte-val)` - Converts a byte (0–255) to a braille character.
 - `(bit-of-sub-pixel [x y])` - Maps sub-pixel coordinates to bit position.
