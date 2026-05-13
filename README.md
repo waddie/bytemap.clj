@@ -2,7 +2,9 @@
 
 # Bytemap (Clojure)
 
-`bytemap` is a library for creating text-based graphics using Unicode braille characters. Each braille character contains 8 “pixels” arranged in a 2x4 grid, allowing for reasonably high-resolution terminal output.
+`bytemap` is a library for creating text-based graphics using Unicode braille characters.
+
+Each braille character contains 8 “pixels” arranged in a 2x4 grid, allowing for reasonably high-resolution terminal output.
 
 This is a Clojure(Script) port of [Ian Henry’s Janet library](https://github.com/ianthehenry/bytemap).
 
